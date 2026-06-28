@@ -1,0 +1,10 @@
+.env
+files/productos/*
+files/usuarios/*
+!files/productos/.gitkeep
+!files/usuarios/.gitkeep
+*.log
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
