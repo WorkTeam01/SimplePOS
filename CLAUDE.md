@@ -12,8 +12,9 @@ Este proyecto corre sobre XAMPP/LAMPP. No requiere compilación — los archivos
 
 - **Iniciar servidor:** `sudo /opt/lampp/lampp start`
 - **Acceder a la app:** `http://localhost/SimplePOS/`
-- **Base de datos:** MySQL, nombre de la base de datos `simplepos`, host `localhost`, usuario `root`, sin contraseña
-- **Configuración PHP:** `config/global.php` (credenciales), `config/Conexion.php` (conexión + helpers)
+- **Entry point:** `index.php` redirige a `vistas/login.html`
+- **Configuración PHP:** `config/global.php` (carga variables de `.env`), `config/Conexion.php` (conexión + helpers)
+- **Variables de entorno:** Copiar `.env.example` a `.env` y ajustar credenciales. `config/global.php` las carga automáticamente con fallback a valores por defecto (host `localhost`, BD `simplepos`, usuario `root`, sin contraseña).
 
 Este proyecto no tiene pruebas automatizadas, configuraciones de linter ni gestores de paquetes.
 

@@ -102,14 +102,18 @@ mysql -u root -p simplepos < simplepos.sql
 
 **3. Configurar la conexión**
 
-Editar `config/global.php` con los datos de tu entorno:
+Copiar el archivo de ejemplo y ajustar los valores según tu entorno:
 
-```php
-define('DB_HOST',     'localhost');
-define('DB_NAME',     'simplepos');
-define('DB_USERNAME', 'root');
-define('DB_PASSWORD', '');
-define('PRO_TIMEZONE', 'UTC'); // Cambia a tu zona horaria si es necesario
+```bash
+cp .env.example .env
+```
+
+```env
+DB_HOST=localhost
+DB_NAME=simplepos
+DB_USERNAME=root
+DB_PASSWORD=
+PRO_TIMEZONE=UTC
 ```
 
 **4. Iniciar el servidor**
@@ -141,7 +145,7 @@ http://localhost/SimplePOS/
 Verifica que LAMPP esté activo: `sudo /opt/lampp/lampp status`. Si Apache o MySQL están detenidos, reinicia con `sudo /opt/lampp/lampp restart`.
 
 **Error de conexión a la base de datos**
-Confirma que la base de datos `simplepos` fue importada correctamente y que las credenciales en `config/global.php` coinciden con tu entorno.
+Confirma que la base de datos `simplepos` fue importada correctamente y que las credenciales en el archivo `.env` coinciden con tu entorno.
 
 **Imágenes de productos no se muestran**
 Verifica que las carpetas `files/productos/` y `files/usuarios/` tengan permisos de escritura: `chmod -R 755 files/`.
