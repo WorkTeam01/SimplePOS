@@ -156,7 +156,7 @@ Verifica que las carpetas `files/productos/` y `files/usuarios/` tengan permisos
 
 ```
 SimplePOS/
-├── config/          # Configuración de BD y helpers
+├── config/          # Configuración de BD, autenticación y helpers
 ├── modelos/         # Clases de modelo (lógica de negocio y consultas SQL)
 ├── ajax/            # Controladores AJAX (punto de entrada de peticiones)
 ├── vistas/          # Plantillas HTML/PHP

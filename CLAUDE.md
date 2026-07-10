@@ -13,7 +13,7 @@ Este proyecto corre sobre XAMPP/LAMPP. No requiere compilación — los archivos
 - **Iniciar servidor:** `sudo /opt/lampp/lampp start`
 - **Acceder a la app:** `http://localhost/SimplePOS/`
 - **Entry point:** `index.php` redirige a `vistas/login.html`
-- **Configuración PHP:** `config/global.php` (carga variables de `.env`), `config/Conexion.php` (conexión + helpers)
+- **Configuración PHP:** `config/global.php` (carga variables de `.env`), `config/Conexion.php` (conexión + helpers), `config/auth.php` (helper `requireAuth()` de control de sesión)
 - **Variables de entorno:** Copiar `.env.example` a `.env` y ajustar credenciales. `config/global.php` las carga automáticamente con fallback a valores por defecto (host `localhost`, BD `simplepos`, usuario `root`, sin contraseña).
 
 Este proyecto no tiene pruebas automatizadas, configuraciones de linter ni gestores de paquetes.
@@ -61,9 +61,15 @@ Funciones helper de base de datos (definidas en `config/Conexion.php`):
 ```php
 ejecutarConsulta($sql)              // Retorna un conjunto de resultados
 ejecutarConsultaSimpleFila($sql)    // Retorna una sola fila como array
-ejecutarConsulta_retornarID($sql)   // Retorna el último ID insertado
-limpiarCadena($str)                 // Escapa + htmlspecialchars — usar en toda entrada del usuario
+ejecutarConsulta_retornarID($sql)   // Retorna el último ID insertado (false si la query falló)
+limpiarCadena($str)                 // Solo SQL-escape (mysqli_real_escape_string) — usar en toda entrada del usuario antes de la consulta
 ```
+
+Toda salida de datos de BD hacia HTML/JSON debe pasar por `htmlspecialchars()` en el punto de salida (en `ajax/*.php` y vistas) — `limpiarCadena()` ya no hace HTML-encoding, así que el escape de salida es responsabilidad de cada handler.
+
+## Autenticación
+
+Todo endpoint en `ajax/*.php` (excepto `usuario.php` case `verificar`, que es el propio login) debe llamar a `requireAuth()` (definida en `config/auth.php`) al inicio del archivo. Corta la ejecución con 401 si no hay `$_SESSION['idusuario']`.
 
 ## Convenciones del Frontend
 
