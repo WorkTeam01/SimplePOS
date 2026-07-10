@@ -1,6 +1,7 @@
 var tabla;
 var cont = 0;
 var detalles = 0;
+var clienteGenericoId = "";
 
 function init() {
     mostrarform(false);
@@ -12,6 +13,16 @@ function init() {
 
     $.post("../ajax/venta.php?op=selectCliente", function (r) {
         $("#idcliente").html(r);
+
+        // Buscamos el cliente genérico ("Publico General") para preseleccionarlo
+        // por defecto y no obligar a buscar un cliente en cada venta.
+        $("#idcliente option").each(function () {
+            if ($(this).text().trim().toLowerCase().startsWith("publico general")) {
+                clienteGenericoId = $(this).val();
+            }
+        });
+        $("#idcliente").val(clienteGenericoId);
+
         $('#idcliente').selectpicker({
             liveSearch: true,
             liveSearchPlaceholder: 'Buscar cliente...',
@@ -28,7 +39,8 @@ function init() {
 }
 
 function limpiar() {
-    $("#idcliente").val("");
+    $("#idcliente").val(clienteGenericoId);
+    $('#idcliente').selectpicker('refresh');
     $("#cliente").val("");
     $("#totalventa").val("");
     $(".filas").remove();
@@ -235,7 +247,7 @@ function cancelarform() {
 function listar() {
     tabla = $('#tbllistado').dataTable({
         "aProcessing": true,
-        "aServerSide": true,
+        "aServerSide": false,
         "responsive": true,
         "autoWidth": false,
         dom: 'Bfrtip',
@@ -363,7 +375,8 @@ function listar() {
         "bDestroy": true,
         "pageLength": 10,
         "lengthMenu": [[5, 10, 25, 50, -1], [5, 10, 25, 50, "Todos"]],
-        "order": [[0, "desc"]],
+        "order": [[1, "desc"]],
+        "columnDefs": [{ "orderable": false, "targets": 0 }],
         "language": {
             "sProcessing": "Procesando...",
             "sLengthMenu": "Mostrar _MENU_ registros",
