@@ -1,4 +1,6 @@
-<?php 
+<?php
+require_once "../config/auth.php";
+requireAuth();
 require_once "../modelos/Categoria.php";
 
 $categoria = new Categoria();
@@ -43,7 +45,7 @@ switch ($_GET["op"]) {
                     '<button class="btn btn-danger btn-xs" onclick="desactivar('.$reg->idcategoria.')"><i class="fa fa-close"></i></button>' : 
                     '<button class="btn btn-warning btn-xs" onclick="mostrar('.$reg->idcategoria.')"><i class="fa fa-pencil"></i></button>'.' '.
                     '<button class="btn btn-primary btn-xs" onclick="activar('.$reg->idcategoria.')"><i class="fa fa-check"></i></button>',
-                "1" => $reg->nombre,
+                "1" => htmlspecialchars($reg->nombre),
                 "2" => ($reg->estado) ? '<span class="label bg-green">Activado</span>' : '<span class="label bg-red">Desactivado</span>'
             );
         }

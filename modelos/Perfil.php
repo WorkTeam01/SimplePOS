@@ -48,6 +48,8 @@ class Perfil
     // Método para cambiar la contraseña
     public function cambiarClave($idusuario, $claveActual, $claveNueva)
     {
+        if (empty($claveActual) || empty($claveNueva)) return false;
+
         // Primero verificamos que la clave actual sea correcta
         $sql = "SELECT clave FROM usuarios WHERE idusuario = '$idusuario'";
         $claveDB = ejecutarConsultaSimpleFila($sql);

@@ -1,6 +1,16 @@
 <?php
 session_start();
+require_once "../config/auth.php";
 require_once "../modelos/Usuario.php";
+
+const PERMISO_ESCRITORIO = 1;
+const PERMISO_ALMACEN = 2;
+const PERMISO_COMPRAS = 3;
+const PERMISO_VENTAS = 4;
+const PERMISO_ACCESO = 5;
+const PERMISO_CONSULTAC = 6;
+const PERMISO_CONSULTAV = 7;
+const PERMISO_CONFIGURACION = 8;
 
 $usuario = new Usuario();
 
@@ -19,60 +29,67 @@ $imagen = isset($_POST["imagen"]) ? limpiarCadena($_POST["imagen"]) : "";
 
 switch ($_GET["op"]) {
     case 'guardaryeditar':
+        requireAuth();
         if (!file_exists($_FILES['imagen']['tmp_name']) || !is_uploaded_file($_FILES['imagen']['tmp_name'])) {
-            $imagen = $_POST["imagenactual"];
+            $imagen = limpiarCadena($_POST["imagenactual"]);
         } else {
-            $ext = explode(".", $_FILES["imagen"]["name"]);
-            if ($_FILES['imagen']['type'] == "image/jpg" || $_FILES['imagen']['type'] == "image/jpeg" || $_FILES['imagen']['type'] == "image/png") {
-                $imagen = round(microtime(true)) . '.' . end($ext);
+            $tipos_permitidos = ["image/jpeg" => "jpg", "image/png" => "png"];
+            $info = getimagesize($_FILES["imagen"]["tmp_name"]);
+            if ($info !== false && isset($tipos_permitidos[$info['mime']])) {
+                $imagen = round(microtime(true)) . '.' . $tipos_permitidos[$info['mime']];
                 move_uploaded_file($_FILES["imagen"]["tmp_name"], "../files/usuarios/" . $imagen);
             }
         }
 
         //Hash SHA256 para la contraseña
         $clavehash = hash("SHA256", $clave);
+        $permisos = $_POST['permiso'] ?? [];
         if (empty($idusuario)) {
-            $rspta = $usuario->insertar($nombre, $apellidopaterno, $apellidomaterno, $tipodocumento, $numdocumento, $direccion, $telefono, $correo, $cargo, $clavehash, $imagen, $_POST['permiso']);
+            $rspta = $usuario->insertar($nombre, $apellidopaterno, $apellidomaterno, $tipodocumento, $numdocumento, $direccion, $telefono, $correo, $cargo, $clavehash, $imagen, $permisos);
             echo $rspta ? "Usuario registrado correctamente" : "No se pudo registrar el usuario";
         } else {
             // Si no se cambió la contraseña
             if (empty($clave)) {
                 $clavehash = $_POST["claveactual"];
             }
-            $rspta = $usuario->editar($idusuario, $nombre, $apellidopaterno, $apellidomaterno, $tipodocumento, $numdocumento, $direccion, $telefono, $correo, $cargo, $clavehash, $imagen, $_POST['permiso']);
+            $rspta = $usuario->editar($idusuario, $nombre, $apellidopaterno, $apellidomaterno, $tipodocumento, $numdocumento, $direccion, $telefono, $correo, $cargo, $clavehash, $imagen, $permisos);
             echo $rspta ? "Usuario actualizado correctamente" : "No se pudo actualizar el usuario";
         }
         break;
 
     case 'desactivar':
+        requireAuth();
         $rspta = $usuario->desactivar($idusuario);
         echo $rspta ? "Usuario desactivado correctamente" : "No se pudo desactivar el usuario";
         break;
 
     case 'activar':
+        requireAuth();
         $rspta = $usuario->activar($idusuario);
         echo $rspta ? "Usuario activado correctamente" : "No se pudo activar el usuario";
         break;
 
     case 'mostrar':
+        requireAuth();
         $rspta = $usuario->mostrar($idusuario);
         echo json_encode($rspta);
         break;
 
     case 'listar':
+        requireAuth();
         $rspta = $usuario->listar();
         $data = array();
 
         while ($reg = $rspta->fetch_object()) {
             $data[] = array(
                 "0" => ($reg->estado) ? '<button class="btn btn-warning btn-xs" onclick="mostrar(' . $reg->idusuario . ')"><i class="fa fa-pencil"></i></button>' . ' ' . '<button class="btn btn-danger btn-xs" onclick="desactivar(' . $reg->idusuario . ')"><i class="fa fa-close"></i></button>' : '<button class="btn btn-warning btn-xs" onclick="mostrar(' . $reg->idusuario . ')"><i class="fa fa-pencil"></i></button>' . ' ' . '<button class="btn btn-primary btn-xs" onclick="activar(' . $reg->idusuario . ')"><i class="fa fa-check"></i></button>',
-                "1" => $reg->nombre . ' ' . $reg->apellidopaterno . ' ' . $reg->apellidomaterno,
-                "2" => $reg->tipodocumento,
-                "3" => $reg->numdocumento,
-                "4" => $reg->telefono,
-                "5" => $reg->correo,
-                "6" => $reg->cargo,
-                "7" => "<img src='".(!empty($reg->imagen) ? '../files/usuarios/'.$reg->imagen : '../public/img/avatar.png')."' height='50px' width='50px'>",
+                "1" => htmlspecialchars($reg->nombre . ' ' . $reg->apellidopaterno . ' ' . $reg->apellidomaterno),
+                "2" => htmlspecialchars($reg->tipodocumento),
+                "3" => htmlspecialchars($reg->numdocumento),
+                "4" => htmlspecialchars($reg->telefono),
+                "5" => htmlspecialchars($reg->correo),
+                "6" => htmlspecialchars($reg->cargo),
+                "7" => "<img src='".(!empty($reg->imagen) ? '../files/usuarios/'.htmlspecialchars($reg->imagen) : '../public/img/avatar.png')."' height='50px' width='50px'>",
                 "8" => ($reg->estado) ? '<span class="label bg-green">Activado</span>' : '<span class="label bg-red">Desactivado</span>'
             );
         }
@@ -87,6 +104,7 @@ switch ($_GET["op"]) {
         break;
 
     case 'permisos':
+        requireAuth();
         require_once "../modelos/Permiso.php";
         $permiso = new Permiso();
         $rspta = $permiso->listar();
@@ -101,12 +119,12 @@ switch ($_GET["op"]) {
 
         while ($reg = $rspta->fetch_object()) {
             $sw = in_array($reg->idpermiso, $valores) ? 'checked' : '';
-            echo '<li><input type="checkbox" ' . $sw . ' name="permiso[]" value="' . $reg->idpermiso . '">' . $reg->nombre . '</li>';
+            echo '<li><input type="checkbox" ' . $sw . ' name="permiso[]" value="' . $reg->idpermiso . '">' . htmlspecialchars($reg->nombre) . '</li>';
         }
         break;
 
     case 'verificar':
-        $numdocumentoa = $_POST['numdocumentoa'];
+        $numdocumentoa = limpiarCadena($_POST['numdocumentoa']);
         $clavea = $_POST['clavea'];
 
         $clavehash = hash("SHA256", $clavea);
@@ -114,7 +132,7 @@ switch ($_GET["op"]) {
         $rspta = $usuario->verificar($numdocumentoa, $clavehash);
         $fetch = $rspta->fetch_object();
 
-        if (isset($fetch)) {
+        if (isset($fetch) && $fetch->estado == 1) {
             $_SESSION['idusuario'] = $fetch->idusuario;
             $_SESSION['nombre'] = $fetch->nombre;
             $_SESSION['apellidopaterno'] = $fetch->apellidopaterno;
@@ -133,14 +151,14 @@ switch ($_GET["op"]) {
             }
 
             // Determinamos los accesos
-            in_array(1, $valores) ? $_SESSION['escritorio'] = 1 : $_SESSION['escritorio'] = 0;
-            in_array(2, $valores) ? $_SESSION['almacen'] = 1 : $_SESSION['almacen'] = 0;
-            in_array(3, $valores) ? $_SESSION['compras'] = 1 : $_SESSION['compras'] = 0;
-            in_array(4, $valores) ? $_SESSION['ventas'] = 1 : $_SESSION['ventas'] = 0;
-            in_array(5, $valores) ? $_SESSION['acceso'] = 1 : $_SESSION['acceso'] = 0;
-            in_array(6, $valores) ? $_SESSION['consultac'] = 1 : $_SESSION['consultac'] = 0;
-            in_array(7, $valores) ? $_SESSION['consultav'] = 1 : $_SESSION['consultav'] = 0;
-            in_array(8, $valores) ? $_SESSION['configuracion'] = 1 : $_SESSION['configuracion'] = 0;
+            $_SESSION['escritorio'] = in_array(PERMISO_ESCRITORIO, $valores) ? 1 : 0;
+            $_SESSION['almacen'] = in_array(PERMISO_ALMACEN, $valores) ? 1 : 0;
+            $_SESSION['compras'] = in_array(PERMISO_COMPRAS, $valores) ? 1 : 0;
+            $_SESSION['ventas'] = in_array(PERMISO_VENTAS, $valores) ? 1 : 0;
+            $_SESSION['acceso'] = in_array(PERMISO_ACCESO, $valores) ? 1 : 0;
+            $_SESSION['consultac'] = in_array(PERMISO_CONSULTAC, $valores) ? 1 : 0;
+            $_SESSION['consultav'] = in_array(PERMISO_CONSULTAV, $valores) ? 1 : 0;
+            $_SESSION['configuracion'] = in_array(PERMISO_CONFIGURACION, $valores) ? 1 : 0;
         }
         echo json_encode($fetch);
         break;

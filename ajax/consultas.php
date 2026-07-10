@@ -1,4 +1,6 @@
 <?php
+require_once "../config/auth.php";
+requireAuth();
 require_once "../modelos/Consultas.php";
 
 $consulta = new Consultas();
@@ -17,8 +19,8 @@ switch ($op) {
     while ($reg = $rspta->fetch_object()) {
       $data[] = array(
         "0" => $reg->fecha,
-        "1" => $reg->usuario,
-        "2" => $reg->proveedor,
+        "1" => htmlspecialchars($reg->usuario),
+        "2" => htmlspecialchars($reg->proveedor),
         "3" => $reg->total_compra,
         "4" => ($reg->estado == 1) ? '<span class="label bg-green">Aceptado</span>' :
           '<span class="label bg-red">Anulado</span>'
@@ -48,12 +50,12 @@ switch ($op) {
 
       $data[] = array(
         "0" => $reg->fecha,
-        "1" => $reg->usuario,
-        "2" => $reg->cliente,
+        "1" => htmlspecialchars($reg->usuario),
+        "2" => htmlspecialchars($reg->cliente),
         "3" => $reg->totalventa,
         "4" => ($reg->estado == 1) ? '<span class="label bg-green">Aceptado</span>' :
           '<span class="label bg-red">Anulado</span>',
-        "5" => $reg->metodopago,
+        "5" => htmlspecialchars($reg->metodopago),
         "6" => '<a href="' . $urlTicket . '" target="_blank"><button class="btn btn-info btn-xs"><i class="fa fa-print"></i> Ver</button></a>'
       );
     }

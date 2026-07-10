@@ -1,4 +1,6 @@
-<?php 
+<?php
+require_once "../config/auth.php";
+requireAuth();
 require_once "../modelos/Producto.php";
 
 $producto = new Producto();
@@ -17,11 +19,12 @@ $idsucursal = isset($_POST["idsucursal"]) ? limpiarCadena($_POST["idsucursal"]) 
 switch ($_GET["op"]) {
     case 'guardaryeditar':
         if (!file_exists($_FILES['imagen']['tmp_name']) || !is_uploaded_file($_FILES['imagen']['tmp_name'])) {
-            $imagen = $_POST["imagenactual"];
+            $imagen = limpiarCadena($_POST["imagenactual"]);
         } else {
-            $ext = explode(".", $_FILES["imagen"]["name"]);
-            if ($_FILES['imagen']['type'] == "image/jpg" || $_FILES['imagen']['type'] == "image/jpeg" || $_FILES['imagen']['type'] == "image/png") {
-                $imagen = round(microtime(true)) . '.' . end($ext);
+            $tipos_permitidos = ["image/jpeg" => "jpg", "image/png" => "png"];
+            $info = getimagesize($_FILES["imagen"]["tmp_name"]);
+            if ($info !== false && isset($tipos_permitidos[$info['mime']])) {
+                $imagen = round(microtime(true)) . '.' . $tipos_permitidos[$info['mime']];
                 move_uploaded_file($_FILES["imagen"]["tmp_name"], "../files/productos/" . $imagen);
             }
         }
@@ -60,15 +63,15 @@ switch ($_GET["op"]) {
                     '<button class="btn btn-danger btn-xs" onclick="desactivar('.$reg->idproducto.')"><i class="fa fa-close"></i></button>' : 
                     '<button class="btn btn-warning btn-xs" onclick="mostrar('.$reg->idproducto.')"><i class="fa fa-pencil"></i></button> ' .
                     '<button class="btn btn-primary btn-xs" onclick="activar('.$reg->idproducto.')"><i class="fa fa-check"></i></button>',
-                "1" => $reg->nombre,
-                "2" => $reg->categoria,
-                "3" => $reg->codigo,
+                "1" => htmlspecialchars($reg->nombre),
+                "2" => htmlspecialchars($reg->categoria),
+                "3" => htmlspecialchars($reg->codigo),
                 "4" => $reg->stock,
-                "5" => $reg->sucursal,
+                "5" => htmlspecialchars($reg->sucursal),
                 "6" => "S/.".$reg->preciocompra,
                 "7" => "S/.".$reg->precioventa,
-                "8" => "<img src='".(!empty($reg->imagen) ? '../files/productos/'.$reg->imagen : '../public/img/default-50x50.gif')."' height='50px' width='50px'>",
-                "9" => $reg->descripcion,
+                "8" => "<img src='".(!empty($reg->imagen) ? '../files/productos/'.htmlspecialchars($reg->imagen) : '../public/img/default-50x50.gif')."' height='50px' width='50px'>",
+                "9" => htmlspecialchars($reg->descripcion),
                 "10" => ($reg->estado) ? '<span class="label bg-green">Activado</span>' : '<span class="label bg-red">Desactivado</span>'
             );
         }
@@ -86,7 +89,7 @@ switch ($_GET["op"]) {
         $categoria = new Categoria();
         $rspta = $categoria->select();
         while ($reg = $rspta->fetch_object()) {
-            echo '<option value="' . $reg->idcategoria . '">' . $reg->nombre . '</option>';
+            echo '<option value="' . $reg->idcategoria . '">' . htmlspecialchars($reg->nombre) . '</option>';
         }
         break;
 
@@ -96,7 +99,7 @@ switch ($_GET["op"]) {
             $sucursal = new Sucursal();
             $rspta = $sucursal->select();
             while ($reg = $rspta->fetch_object()) {
-                echo '<option value="' . $reg->idsucursal . '">' . $reg->nombre . '</option>';
+                echo '<option value="' . $reg->idsucursal . '">' . htmlspecialchars($reg->nombre) . '</option>';
             }
             break;
 

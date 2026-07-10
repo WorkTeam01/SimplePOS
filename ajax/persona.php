@@ -1,4 +1,6 @@
 <?php
+require_once "../config/auth.php";
+requireAuth();
 require_once "../modelos/Persona.php";
 require_once "../config/Conexion.php";
 
@@ -66,11 +68,11 @@ switch ($_GET["op"]) {
                     ($reg->estado == 1 ?
                         '<button class="btn btn-danger btn-xs" onclick="desactivar(' . $reg->idpersona . ')"><i class="fa fa-close"></i></button>' :
                         '<button class="btn btn-primary btn-xs" onclick="activar(' . $reg->idpersona . ')"><i class="fa fa-check"></i></button>'),
-                "1" => $reg->nombre . ' ' . $reg->apellidopaterno . ' ' . $reg->apellidomaterno,
-                "2" => $reg->tipodocumento,
-                "3" => $reg->numdocumento,
-                "4" => $reg->telefono,
-                "5" => $reg->email,
+                "1" => htmlspecialchars($reg->nombre . ' ' . $reg->apellidopaterno . ' ' . $reg->apellidomaterno),
+                "2" => htmlspecialchars($reg->tipodocumento),
+                "3" => htmlspecialchars($reg->numdocumento),
+                "4" => htmlspecialchars($reg->telefono),
+                "5" => htmlspecialchars($reg->email),
                 "6" => ($reg->estado == 1) ? '<span class="label bg-green">Activado</span>' : '<span class="label bg-red">Desactivado</span>'
             );
         }
@@ -93,11 +95,11 @@ switch ($_GET["op"]) {
                     ($reg->estado == 1 ?
                         '<button class="btn btn-danger btn-xs" onclick="desactivar(' . $reg->idpersona . ')"><i class="fa fa-close"></i></button>' :
                         '<button class="btn btn-primary btn-xs" onclick="activar(' . $reg->idpersona . ')"><i class="fa fa-check"></i></button>'),
-                "1" => $reg->nombre . ' ' . $reg->apellidopaterno . ' ' . $reg->apellidomaterno,
-                "2" => $reg->tipodocumento,
-                "3" => $reg->numdocumento,
-                "4" => $reg->telefono,
-                "5" => $reg->email,
+                "1" => htmlspecialchars($reg->nombre . ' ' . $reg->apellidopaterno . ' ' . $reg->apellidomaterno),
+                "2" => htmlspecialchars($reg->tipodocumento),
+                "3" => htmlspecialchars($reg->numdocumento),
+                "4" => htmlspecialchars($reg->telefono),
+                "5" => htmlspecialchars($reg->email),
                 "6" => ($reg->estado == 1) ? '<span class="label bg-green">Activado</span>' : '<span class="label bg-red">Desactivado</span>'
             );
         }

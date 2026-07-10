@@ -1,4 +1,6 @@
- <?php 
+ <?php
+require_once "../config/auth.php";
+requireAuth();
 require_once "../modelos/Permiso.php";
 
 $categoria=new Permiso();
@@ -13,7 +15,7 @@ switch ($_GET["op"]) {
 		while ($reg=$rspta->fetch_object()) {
 			$data[]=array(
             
-            "0"=>$reg->nombre
+            "0"=>htmlspecialchars($reg->nombre)
             
               );
 		}

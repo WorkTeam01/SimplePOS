@@ -1,4 +1,6 @@
-<?php 
+<?php
+require_once "../config/auth.php";
+requireAuth();
 require_once "../modelos/Sucursal.php";
 
 $sucursal = new Sucursal();
@@ -44,8 +46,8 @@ switch ($_GET["op"]) {
                     '<button class="btn btn-danger btn-xs" onclick="desactivar('.$reg->idsucursal.')"><i class="fa fa-close"></i></button>' : 
                     '<button class="btn btn-warning btn-xs" onclick="mostrar('.$reg->idsucursal.')"><i class="fa fa-pencil"></i></button>'.' '.
                     '<button class="btn btn-primary btn-xs" onclick="activar('.$reg->idsucursal.')"><i class="fa fa-check"></i></button>',
-                "1" => $reg->nombre,
-                "2" => $reg->empresa, // Assuming this comes from the JOIN in the listar() method
+                "1" => htmlspecialchars($reg->nombre),
+                "2" => htmlspecialchars($reg->empresa), // Assuming this comes from the JOIN in the listar() method
                 "3" => ($reg->estado) ? '<span class="label bg-green">Activado</span>' : '<span class="label bg-red">Desactivado</span>'
             );
         }
@@ -65,7 +67,7 @@ switch ($_GET["op"]) {
         $rspta = $empresa->select();
         echo '<option value="">Seleccione una empresa</option>';
         while ($reg = $rspta->fetch_object()) {
-            echo '<option value="'.$reg->idempresa.'">'.$reg->nombre.'</option>';
+            echo '<option value="'.$reg->idempresa.'">'.htmlspecialchars($reg->nombre).'</option>';
         }
         break;
         
@@ -74,7 +76,7 @@ switch ($_GET["op"]) {
         $rspta = $sucursal->listarPorEmpresa($idempresa);
         echo '<option value="">Seleccione una sucursal</option>';
         while ($reg = $rspta->fetch_object()) {
-            echo '<option value="'.$reg->idsucursal.'">'.$reg->nombre.'</option>';
+            echo '<option value="'.$reg->idsucursal.'">'.htmlspecialchars($reg->nombre).'</option>';
         }
         break;
 }

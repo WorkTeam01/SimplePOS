@@ -31,11 +31,12 @@ switch ($_GET["op"]) {
 
     case 'actualizar':
         if (!file_exists($_FILES['imagen']['tmp_name']) || !is_uploaded_file($_FILES['imagen']['tmp_name'])) {
-            $imagen = $_POST["imagenactual"];
+            $imagen = limpiarCadena($_POST["imagenactual"]);
         } else {
-            $ext = explode(".", $_FILES["imagen"]["name"]);
-            if ($_FILES['imagen']['type'] == "image/jpg" || $_FILES['imagen']['type'] == "image/jpeg" || $_FILES['imagen']['type'] == "image/png") {
-                $imagen = round(microtime(true)) . '.' . end($ext);
+            $tipos_permitidos = ["image/jpeg" => "jpg", "image/png" => "png"];
+            $info = getimagesize($_FILES["imagen"]["tmp_name"]);
+            if ($info !== false && isset($tipos_permitidos[$info['mime']])) {
+                $imagen = round(microtime(true)) . '.' . $tipos_permitidos[$info['mime']];
                 move_uploaded_file($_FILES["imagen"]["tmp_name"], "../files/usuarios/" . $imagen);
             }
         }

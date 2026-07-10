@@ -16,20 +16,24 @@ class Venta
         $num_elementos = 0;
         $sw = true;
 
-        // Verificar stock
+        // Verificar stock y recalcular total en servidor (no confiar en el total enviado por el cliente)
+        $totalventa = 0;
         while ($num_elementos < count($idproducto)) {
             $idprod = $idproducto[$num_elementos];
-            $cant = $cantidad[$num_elementos];
+            $cant = (int) $cantidad[$num_elementos];
+            $precio = (float) $precioventa[$num_elementos];
+            $desc = (float) $descuento[$num_elementos];
 
             $sql_stock = "SELECT stock FROM producto WHERE idproducto='$idprod'";
             $stock_actual = ejecutarConsultaSimpleFila($sql_stock);
 
             if ($stock_actual['stock'] < $cant) return "Agotado";
+            $totalventa += ($cant * $precio) - $desc;
             $num_elementos++;
         }
 
         // Insertar venta
-        $sql = "INSERT INTO venta (idcliente, idusuario, totalventa, metodopago, fechacreacion, estado) 
+        $sql = "INSERT INTO venta (idcliente, idusuario, totalventa, metodopago, fechacreacion, estado)
                 VALUES ('$idcliente', '$idusuario', '$totalventa', '$metodopago', NOW(), '1')";
 
         $idventanew = ejecutarConsulta_retornarID($sql);
@@ -38,17 +42,20 @@ class Venta
 
         // Insertar detalles
         while ($num_elementos < count($idproducto)) {
-            $idprod = $idproducto[$num_elementos];
-            $cant = $cantidad[$num_elementos];
+            $idprod = (int) $idproducto[$num_elementos];
+            $cant = (int) $cantidad[$num_elementos];
+            $precio = (float) $precioventa[$num_elementos];
+            $desc = (float) $descuento[$num_elementos];
 
-            $sql_detalle = "INSERT INTO detalleventa (idventa, idproducto, cantidad, precioventa, descuento, fechacreacion, estado) 
-                            VALUES ('$idventanew', '$idprod', '$cant', '$precioventa[$num_elementos]', '$descuento[$num_elementos]', NOW(), '1')";
+            $sql_detalle = "INSERT INTO detalleventa (idventa, idproducto, cantidad, precioventa, descuento, fechacreacion, estado)
+                            VALUES ('$idventanew', '$idprod', '$cant', '$precio', '$desc', NOW(), '1')";
 
             ejecutarConsulta($sql_detalle) or $sw = false;
 
-            // Actualizar stock
-            $sql_update_stock = "UPDATE producto SET stock = stock - '$cant' WHERE idproducto='$idprod'";
-            ejecutarConsulta($sql_update_stock) or $sw = false;
+            // Actualizar stock de forma atómica: evita que el stock quede negativo bajo concurrencia
+            $sql_update_stock = "UPDATE producto SET stock = stock - '$cant' WHERE idproducto='$idprod' AND stock >= '$cant'";
+            $resultado_stock = ejecutarConsulta($sql_update_stock);
+            if (!$resultado_stock || $GLOBALS['conexion']->affected_rows === 0) $sw = false;
 
             $num_elementos++;
         }
@@ -73,6 +80,9 @@ class Venta
 
     public function anular($idventa)
     {
+        $venta = $this->mostrar($idventa);
+        if (!$venta || $venta['estado'] != 1) return false;
+
         $sql_detalles = "SELECT idproducto, cantidad FROM detalleventa WHERE idventa='$idventa'";
         $detalles = ejecutarConsulta($sql_detalles);
 
@@ -123,7 +133,7 @@ class Venta
     public function listar()
     {
         $sql = "SELECT v.idventa, DATE(v.fechacreacion) as fecha, v.idcliente, 
-                CONCAT(p.nombre,' ',p.apellidopaterno,' ',p.apellidomaterno) as cliente, 
+                CONCAT(p.nombre,' ',p.apellidopaterno) as cliente, 
                 u.idusuario, CONCAT(u.nombre,' ',u.apellidopaterno,' ',u.apellidomaterno) as usuario, 
                 v.totalventa, v.metodopago, v.estado 
                 FROM venta v 

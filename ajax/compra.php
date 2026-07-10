@@ -1,7 +1,7 @@
 <?php
+require_once "../config/auth.php";
 require_once "../modelos/Compra.php";
-if (strlen(session_id()) < 1)
-    session_start();
+requireAuth();
 
 $compra = new Compra();
 
@@ -85,8 +85,8 @@ switch ($_GET["op"]) {
                     : '<button class="btn btn-warning btn-xs" onclick="mostrar(' . $reg->idcompra . ')"><i class="fa fa-eye"></i></button>' . ' '
                     . '<button class="btn btn-success btn-xs" onclick="activar(' . $reg->idcompra . ')"><i class="fa fa-check"></i></button>',
                 "1" => $reg->fecha,
-                "2" => $reg->proveedor,
-                "3" => $reg->usuario,
+                "2" => htmlspecialchars($reg->proveedor),
+                "3" => htmlspecialchars($reg->usuario),
                 "4" => $reg->total,
                 "5" => ($reg->estado == 'Aceptado')
                     ? '<span class="label bg-green">Aceptado</span>'
@@ -110,7 +110,7 @@ switch ($_GET["op"]) {
         $rspta = $persona->listarp();
 
         while ($reg = $rspta->fetch_object()) {
-            echo '<option value="' . $reg->idpersona . '">' . $reg->nombre . ' ' . $reg->apellidopaterno . '</option>';
+            echo '<option value="' . $reg->idpersona . '">' . htmlspecialchars($reg->nombre) . ' ' . htmlspecialchars($reg->apellidopaterno) . '</option>';
         }
         break;
 
@@ -122,10 +122,10 @@ switch ($_GET["op"]) {
 
         while ($reg = $rspta->fetch_object()) {
             $data[] = array(
-                "0" => '<button class="btn btn-warning" onclick="agregarDetalle(' . $reg->idproducto . ',\'' . $reg->nombre . '\')">
+                "0" => '<button class="btn btn-warning" onclick="agregarDetalle(' . $reg->idproducto . ',\'' . addslashes(htmlspecialchars($reg->nombre)) . '\')">
                         <span class="fa fa-plus"></span></button>',
-                "1" => $reg->nombre,
-                "2" => $reg->codigo,
+                "1" => htmlspecialchars($reg->nombre),
+                "2" => htmlspecialchars($reg->codigo),
                 "3" => $reg->stock,
                 "4" => "<img src='".(!empty($reg->imagen) ? '../files/productos/'.$reg->imagen : '../public/img/default-50x50.gif')."' height='50px' width='50px'>"
             );

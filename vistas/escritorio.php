@@ -295,12 +295,12 @@ if (!isset($_SESSION['nombre'])) {
                                   <img src="<?php echo $imagen; ?>" alt="Imagen artículo" class="img-thumbnail rounded-img" style="width: 50px; height: 50px; object-fit: cover;">
                                 </td>
                                 <td class="producto-nombre-celda">
-                                  <strong class="producto-nombre"><?php echo $reg->nombre; ?></strong>
+                                  <strong class="producto-nombre"><?php echo htmlspecialchars($reg->nombre); ?></strong>
                                   <?php if (!empty($reg->descripcion)): ?>
-                                    <br><small class="text-muted producto-descripcion"><?php echo substr($reg->descripcion, 0, 60); ?><?php echo (strlen($reg->descripcion) > 60) ? '...' : ''; ?></small>
+                                    <br><small class="text-muted producto-descripcion"><?php echo htmlspecialchars(substr($reg->descripcion, 0, 60)); ?><?php echo (strlen($reg->descripcion) > 60) ? '...' : ''; ?></small>
                                   <?php endif; ?>
                                 </td>
-                                <td class="text-center hidden-xs hidden-sm"><?php echo $reg->codigo; ?></td>
+                                <td class="text-center hidden-xs hidden-sm"><?php echo htmlspecialchars($reg->codigo); ?></td>
                                 <td class="text-right hidden-xs">Bs. <?php echo number_format($reg->precio_actual, 2); ?></td>
                                 <td class="text-center">
                                   <span class="badge bg-blue"><?php echo $reg->total_unidades; ?></span>
@@ -500,18 +500,18 @@ if (!isset($_SESSION['nombre'])) {
                           ?>
                               <tr>
                                 <td class="text-center hidden-xs">
-                                  <img src="<?php echo $imagen; ?>" alt="<?php echo $reg->nombre; ?>" class="img-thumbnail rounded-img" style="width: 50px; height: 50px; object-fit: cover;">
+                                  <img src="<?php echo $imagen; ?>" alt="<?php echo htmlspecialchars($reg->nombre); ?>" class="img-thumbnail rounded-img" style="width: 50px; height: 50px; object-fit: cover;">
                                 </td>
                                 <td class="producto-nombre-celda">
-                                  <strong class="producto-nombre"><?php echo $reg->nombre; ?></strong>
+                                  <strong class="producto-nombre"><?php echo htmlspecialchars($reg->nombre); ?></strong>
                                   <?php if (!empty($reg->descripcion)): ?>
-                                    <br><small class="text-muted producto-descripcion"><?php echo substr($reg->descripcion, 0, 60); ?><?php echo (strlen($reg->descripcion) > 60) ? '...' : ''; ?></small>
+                                    <br><small class="text-muted producto-descripcion"><?php echo htmlspecialchars(substr($reg->descripcion, 0, 60)); ?><?php echo (strlen($reg->descripcion) > 60) ? '...' : ''; ?></small>
                                   <?php endif; ?>
                                   <?php if ($es_popular): ?>
                                     <span class="label label-success popular-badge"><i class="fa fa-fire"></i> Popular</span>
                                   <?php endif; ?>
                                 </td>
-                                <td class="text-center hidden-xs hidden-sm"><?php echo $reg->codigo; ?></td>
+                                <td class="text-center hidden-xs hidden-sm"><?php echo htmlspecialchars($reg->codigo); ?></td>
                                 <td class="text-center">
                                   <div class="stock-indicator">
                                     <span class="stock-number"><?php echo $reg->stock; ?></span>

@@ -33,13 +33,13 @@ if (!function_exists('ejecutarConsulta')) {
 	{
 		global $conexion;
 		$query = $conexion->query($sql);
+		if ($query === false) return false;
 		return $conexion->insert_id;
 	}
 
 	function limpiarCadena($str)
 	{
 		global $conexion;
-		$str = mysqli_real_escape_string($conexion, trim($str));
-		return htmlspecialchars($str);
+		return mysqli_real_escape_string($conexion, trim($str));
 	}
 }

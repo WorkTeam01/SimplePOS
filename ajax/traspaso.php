@@ -1,13 +1,12 @@
 <?php
-// Iniciar la sesión al principio del archivo
-session_start();
+require_once "../config/auth.php";
+requireAuth();
 
 require_once "../modelos/Traspaso.php";
 
 $traspaso = new Traspaso();
 
-// Comprobar si la sesión está iniciada y si existe idusuario
-$idusuario = isset($_SESSION["idusuario"]) ? $_SESSION["idusuario"] : null;
+$idusuario = $_SESSION["idusuario"];
 
 $idtraspaso = isset($_POST["idtraspaso"]) ? limpiarCadena($_POST["idtraspaso"]) : "";
 $motivo = isset($_POST["motivo"]) ? limpiarCadena($_POST["motivo"]) : "";
@@ -85,8 +84,8 @@ switch ($_GET["op"]) {
             $data[] = [
                 "iddetalletraspaso" => $reg->iddetalletraspaso,
                 "idproducto" => $reg->idproducto,
-                "producto" => $reg->producto,
-                "codigo" => $reg->codigo,
+                "producto" => htmlspecialchars($reg->producto),
+                "codigo" => htmlspecialchars($reg->codigo),
                 "stock_actual" => $reg->stock,
                 "imagen" => $imagen,
                 "cantidad" => $reg->cantidad,
@@ -117,9 +116,9 @@ switch ($_GET["op"]) {
             $data[] = [
                 "idtraspaso" => $reg->idtraspaso,
                 "fecha_solicitud" => $reg->fecha_solicitud,
-                "motivo" => $reg->motivo,
-                "usuario" => $reg->usuario,
-                "estado" => '<span class="label ' . $estado_clase . '">' . $reg->estado . '</span>',
+                "motivo" => htmlspecialchars($reg->motivo),
+                "usuario" => htmlspecialchars($reg->usuario),
+                "estado" => '<span class="label ' . $estado_clase . '">' . htmlspecialchars($reg->estado) . '</span>',
                 "opciones" =>
                 '<div class="btn-group">' .
                     '<button class="btn btn-info btn-sm" onclick="mostrar(' . $reg->idtraspaso . ')"><i class="fa fa-eye"></i></button>' .
@@ -155,8 +154,8 @@ switch ($_GET["op"]) {
 
             $data[] = [
                 "opciones" => '<button class="btn btn-info" onclick="agregarDetalle(' . $reg->idproducto . ',\'' . htmlspecialchars($reg->nombre, ENT_QUOTES) . '\',' . $reg->stock . ')"><i class="fa fa-plus"></i></button>',
-                "codigo" => $reg->codigo,
-                "nombre" => $reg->nombre,
+                "codigo" => htmlspecialchars($reg->codigo),
+                "nombre" => htmlspecialchars($reg->nombre),
                 "stock" => $reg->stock,
                 "imagen" => '<img src="' . $imagen . '" alt="Imagen de producto" height="50" width="50" class="img-thumbnail">'
             ];

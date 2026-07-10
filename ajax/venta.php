@@ -1,6 +1,7 @@
 <?php
+require_once "../config/auth.php";
 require_once "../modelos/Venta.php";
-if (strlen(session_id()) < 1) session_start();
+requireAuth();
 
 $venta = new Venta();
 
@@ -138,9 +139,9 @@ switch ($_GET["op"]) {
                     '<button class="btn btn-warning btn-xs" onclick="mostrar(' . $reg->idventa . ')"><i class="fa fa-eye"></i></button>') .
                     '<a target="_blank" href="../reportes/rptventas.php?id=' . $reg->idventa . '"> <button class="btn btn-info btn-xs"><i class="fa fa-file"></i></button></a>',
                 "1" => $reg->fecha,
-                "2" => $reg->cliente,
-                "3" => $reg->usuario,
-                "4" => $reg->metodopago,
+                "2" => htmlspecialchars($reg->cliente),
+                "3" => htmlspecialchars($reg->usuario),
+                "4" => htmlspecialchars($reg->metodopago),
                 "5" => $reg->totalventa,
                 "6" => ($reg->estado == '1') ? '<span class="label bg-green">Aceptado</span>' : '<span class="label bg-red">Anulado</span>'
             );
@@ -160,7 +161,7 @@ switch ($_GET["op"]) {
         $rspta = $persona->listarc();
 
         while ($reg = $rspta->fetch_object()) {
-            echo '<option value=' . $reg->idpersona . '>' . $reg->nombre . ' ' . $reg->apellidopaterno . ' ' . $reg->apellidomaterno . '</option>';
+            echo '<option value=' . $reg->idpersona . '>' . htmlspecialchars($reg->nombre . ' ' . $reg->apellidopaterno . ' ' . $reg->apellidomaterno) . '</option>';
         }
         break;
 
@@ -175,14 +176,14 @@ switch ($_GET["op"]) {
             $tooltip = ($reg->stock <= 0) ? 'title="Producto agotado"' : '';
 
             $data[] = array(
-                "0" => '<button class="btn btn-warning" ' . $disabled . ' ' . $tooltip . ' onclick="agregarDetalle(' . $reg->idproducto . ',\'' . $reg->nombre . '\',' . $reg->precioventa . ')">
+                "0" => '<button class="btn btn-warning" ' . $disabled . ' ' . $tooltip . ' onclick="agregarDetalle(' . $reg->idproducto . ',\'' . addslashes(htmlspecialchars($reg->nombre)) . '\',' . $reg->precioventa . ')">
                         <span class="fa fa-plus"></span></button>',
-                "1" => $reg->nombre,
-                "2" => $reg->categoria,
-                "3" => $reg->codigo,
+                "1" => htmlspecialchars($reg->nombre),
+                "2" => htmlspecialchars($reg->categoria),
+                "3" => htmlspecialchars($reg->codigo),
                 "4" => $reg->stock,
                 "5" => $reg->precioventa,
-                "6" => "<img src='".(!empty($reg->imagen) ? '../files/productos/'.$reg->imagen : '../public/img/default-50x50.gif')."' height='50px' width='50px'>"
+                "6" => "<img src='".(!empty($reg->imagen) ? '../files/productos/'.htmlspecialchars($reg->imagen) : '../public/img/default-50x50.gif')."' height='50px' width='50px'>"
             );
         }
 
@@ -197,7 +198,7 @@ switch ($_GET["op"]) {
     case 'listarMetodosPago':
         $rspta = $venta->listarMetodosPago();
         while ($reg = $rspta->fetch_object()) {
-            echo '<option value="' . $reg->nombre . '">' . $reg->nombre . '</option>';
+            echo '<option value="' . htmlspecialchars($reg->nombre, ENT_QUOTES) . '">' . htmlspecialchars($reg->nombre) . '</option>';
         }
         break;
 }

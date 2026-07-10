@@ -2,6 +2,14 @@
 // Asegurarse de que no haya salida antes de este punto
 ob_start(); // Inicia el buffer de salida
 
+session_start();
+if (!isset($_SESSION['nombre'])) {
+    die('No autorizado');
+}
+if ($_SESSION['ventas'] != 1) {
+    die('No tiene permiso para acceder a este reporte');
+}
+
 // Definir la función obsoleta si no existe
 if (!function_exists('get_magic_quotes_runtime')) {
     function get_magic_quotes_runtime()

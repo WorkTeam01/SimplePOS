@@ -1,4 +1,6 @@
-<?php 
+<?php
+require_once "../config/auth.php";
+requireAuth();
 require_once "../modelos/Empresa.php";
 
 $empresa = new Empresa();
@@ -55,11 +57,11 @@ switch ($_GET["op"]) {
                     '<button class="btn btn-danger btn-xs" onclick="desactivar('.$reg->idempresa.')"><i class="fa fa-close"></i></button>' : 
                     '<button class="btn btn-warning btn-xs" onclick="mostrar('.$reg->idempresa.')"><i class="fa fa-pencil"></i></button>'.' '.
                     '<button class="btn btn-primary btn-xs" onclick="activar('.$reg->idempresa.')"><i class="fa fa-check"></i></button>',
-                "1" => $reg->nombre,
-                "2" => $reg->nit,
-                "3" => $reg->direccion,
-                "4" => $reg->telefono,
-                "5" => $reg->email,
+                "1" => htmlspecialchars($reg->nombre),
+                "2" => htmlspecialchars($reg->nit),
+                "3" => htmlspecialchars($reg->direccion),
+                "4" => htmlspecialchars($reg->telefono),
+                "5" => htmlspecialchars($reg->email),
                 "6" => ($reg->estado) ? '<span class="label bg-green">Activado</span>' : '<span class="label bg-red">Desactivado</span>'
             );
         }
@@ -76,7 +78,7 @@ switch ($_GET["op"]) {
     case 'select':
         $rspta = $empresa->select();
         while ($reg = $rspta->fetch_object()) {
-            echo '<option value="'.$reg->idempresa.'">'.$reg->nombre.'</option>';
+            echo '<option value="'.$reg->idempresa.'">'.htmlspecialchars($reg->nombre).'</option>';
         }
         break;
 }

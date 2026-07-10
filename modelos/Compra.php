@@ -5,25 +5,35 @@ class Compra {
     public function __construct() {}
 
     public function insertar($idproveedor, $idusuario, $total, $idproducto, $cantidad, $preciocompra) {
-        $sql = "INSERT INTO compra (idproveedor, idusuario, total, fechacreacion, estado) 
+        // Recalcular total en servidor (no confiar en el total enviado por el cliente)
+        $total = 0;
+        for ($i = 0; $i < count($idproducto); $i++) {
+            $total += (int) $cantidad[$i] * (float) $preciocompra[$i];
+        }
+
+        $sql = "INSERT INTO compra (idproveedor, idusuario, total, fechacreacion, estado)
                 VALUES ('$idproveedor', '$idusuario', '$total', NOW(), 1)";
-        
+
         $idcompranew = ejecutarConsulta_retornarID($sql);
         $num_elementos = 0;
         $sw = true;
 
         while ($num_elementos < count($idproducto)) {
+            $idprod = (int) $idproducto[$num_elementos];
+            $cant = (int) $cantidad[$num_elementos];
+            $precio = (float) $preciocompra[$num_elementos];
+
             // Insertar detalle de compra
-            $sql_detalle = "INSERT INTO detallecompra (idcompra, idproducto, cantidad, preciocompra, fechacreacion, estado) 
-                          VALUES('$idcompranew', '$idproducto[$num_elementos]', '$cantidad[$num_elementos]', 
-                          '$preciocompra[$num_elementos]', NOW(), 1)";
-            
+            $sql_detalle = "INSERT INTO detallecompra (idcompra, idproducto, cantidad, preciocompra, fechacreacion, estado)
+                          VALUES('$idcompranew', '$idprod', '$cant',
+                          '$precio', NOW(), 1)";
+
             ejecutarConsulta($sql_detalle) or $sw = false;
 
             // Actualizar stock del producto (AQUÍ ESTÁ LA ACTUALIZACIÓN)
-            $sql_update_stock = "UPDATE producto SET stock = stock + ".$cantidad[$num_elementos]." 
-                               WHERE idproducto = ".$idproducto[$num_elementos];
-            
+            $sql_update_stock = "UPDATE producto SET stock = stock + ".$cant."
+                               WHERE idproducto = ".$idprod;
+
             ejecutarConsulta($sql_update_stock) or $sw = false;
 
             $num_elementos++;
@@ -32,10 +42,13 @@ class Compra {
     }
 
     public function anular($idcompra) {
+        $compra = $this->mostrar($idcompra);
+        if (!$compra || $compra['estado'] !== 'Aceptado') return false;
+
         // Primero obtenemos los detalles para revertir el stock
         $detalles = $this->listarDetalle($idcompra);
         $sw = true;
-        
+
         if($detalles) {
             while ($reg = $detalles->fetch_object()) {
                 // Revertir el stock (restamos lo añadido)
@@ -54,10 +67,13 @@ class Compra {
     }
 
     public function activar($idcompra) {
+        $compra = $this->mostrar($idcompra);
+        if (!$compra || $compra['estado'] !== 'Anulado') return false;
+
         // Primero obtenemos los detalles para actualizar stock
         $detalles = $this->listarDetalle($idcompra);
         $sw = true;
-        
+
         if($detalles) {
             while ($reg = $detalles->fetch_object()) {
                 // Sumar el stock nuevamente

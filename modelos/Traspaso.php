@@ -19,8 +19,11 @@ class Traspaso
         $sw = true;
 
         while ($num_elementos < count($idproducto)) {
-            $sql_detalle = "INSERT INTO detalletraspaso(idtraspaso, idproducto, cantidad) 
-                           VALUES ('$idtraspasonew', '$idproducto[$num_elementos]', '$cantidad[$num_elementos]')";
+            $idprod = (int) $idproducto[$num_elementos];
+            $cant = (int) $cantidad[$num_elementos];
+
+            $sql_detalle = "INSERT INTO detalletraspaso(idtraspaso, idproducto, cantidad)
+                           VALUES ('$idtraspasonew', '$idprod', '$cant')";
 
             ejecutarConsulta($sql_detalle) or $sw = false;
 
@@ -43,17 +46,19 @@ class Traspaso
         $sw = true;
 
         while ($num_elementos < count($iddetalletraspaso)) {
+            $iddetalle = (int) $iddetalletraspaso[$num_elementos];
+
             // Obtener el idproducto y cantidad para actualizar el stock
-            $sql_detalle = "SELECT idproducto, cantidad FROM detalletraspaso 
-                           WHERE iddetalletraspaso='$iddetalletraspaso[$num_elementos]'";
+            $sql_detalle = "SELECT idproducto, cantidad FROM detalletraspaso
+                           WHERE iddetalletraspaso='$iddetalle'";
             $respuesta = ejecutarConsulta($sql_detalle);
             $reg = $respuesta->fetch_object();
             $idproducto = $reg->idproducto;
             $cantidad = $reg->cantidad;
 
             // Actualizar el estado del detalle
-            $sql_update = "UPDATE detalletraspaso SET estado='Completado' 
-                          WHERE iddetalletraspaso='$iddetalletraspaso[$num_elementos]'";
+            $sql_update = "UPDATE detalletraspaso SET estado='Completado'
+                          WHERE iddetalletraspaso='$iddetalle'";
 
             ejecutarConsulta($sql_update) or $sw = false;
 
