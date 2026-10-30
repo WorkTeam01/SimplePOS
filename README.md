@@ -61,6 +61,7 @@ Comprobante generado automáticamente al cerrar una venta, listo para imprimir o
 - **Usuarios y Permisos:** Roles con control de acceso por módulo.
 - **Reportes PDF:** Ventas por rango de fechas, inventario y tickets de venta.
 - **Escritorio analítico:** Métricas en tiempo real (ventas del día/semana/mes, mejores clientes, productos más vendidos).
+- **Seguridad reforzada:** Sesión endurecida, validación CSRF en operaciones de escritura, controles por permiso en endpoints AJAX y escape de salida en respuestas HTML/JSON.
 
 ---
 
@@ -149,6 +150,40 @@ Confirma que la base de datos `simplepos` fue importada correctamente y que las 
 
 **Imágenes de productos no se muestran**
 Verifica que las carpetas `files/productos/` y `files/usuarios/` tengan permisos de escritura: `chmod -R 755 files/`.
+
+---
+
+## Seguridad implementada
+
+### 1. Sesión y autenticación
+
+- La sesión se inicia mediante `iniciarSesionSegura()` (`config/auth.php`) con cookies `HttpOnly`, `SameSite=Lax` y `Secure` cuando aplica HTTPS.
+- Todos los endpoints `ajax/*.php` protegidos requieren sesión activa con `requireAuth()`/`requiereAutenticacion()`.
+- Después del login se regenera el ID de sesión (`regenerarSesion()`) para mitigar fijación de sesión.
+
+### 2. CSRF para operaciones de escritura
+
+- Se genera un token por sesión con `csrfToken()`.
+- El frontend lo adjunta automáticamente en peticiones AJAX (`vistas/footer.php`) mediante cabecera `X-CSRF-TOKEN`.
+- Las operaciones que crean/editan/anulan/activan/desactivan validan token con `verificarCsrf()`.
+
+### 3. Control de acceso por módulo
+
+- Los handlers AJAX usan `requerirPermiso()` o `requerirAlgunPermiso()` según el caso (`almacen`, `compras`, `ventas`, `acceso`, `consultac`, `consultav`, `configuracion`).
+- Si el usuario no tiene permiso, la API responde `403 Forbidden`.
+
+### 4. Contraseñas y migración de hashes
+
+- Nuevas contraseñas y cambios de clave usan `password_hash()` (bcrypt/argon2 según PHP).
+- Login usa `verifyPassword()` y acepta hash legacy SHA-256 solo para migración transparente.
+- Cuando un usuario inicia sesión con hash legacy válido, se re-hashea automáticamente a formato moderno.
+- Nunca se expone el hash de contraseña en respuestas JSON de usuario/login.
+
+### 5. Endurecimiento de entrada/salida
+
+- IDs de entrada en rutas críticas se normalizan a entero antes de consultas.
+- Salidas en HTML/JSON sensibles se escapan con `htmlspecialchars()` en controladores y vistas.
+- La conexión a BD no expone detalles técnicos al cliente; los errores se registran en el log del servidor.
 
 ---
 

@@ -41,7 +41,7 @@ La aplicación sigue un patrón MVC personalizado de 3 capas:
 - **Eliminación lógica:** Todas las entidades tienen una columna `estado` (1 = activo, 0 = inactivo). Nunca eliminar registros físicamente; usar los métodos `activar()`/`desactivar()` del modelo.
 - **Claves primarias:** `id<nombretabla>` (ej. `idproducto`, `idventa`)
 - **Marcas de tiempo:** `fechacreacion` usando `CURRENT_TIMESTAMP` o `NOW()`
-- **Contraseñas:** SHA2(contraseña, 256) — nunca almacenar en texto plano
+- **Contraseñas:** `password_hash()`/`password_verify()` para credenciales nuevas. Se mantiene compatibilidad temporal con hashes SHA-256 legacy solo para migración transparente en login.
 
 ## Convenciones de los Modelos
 
@@ -63,6 +63,8 @@ ejecutarConsulta($sql)              // Retorna un conjunto de resultados
 ejecutarConsultaSimpleFila($sql)    // Retorna una sola fila como array
 ejecutarConsulta_retornarID($sql)   // Retorna el último ID insertado (false si la query falló)
 limpiarCadena($str)                 // Solo SQL-escape (mysqli_real_escape_string) — usar en toda entrada del usuario antes de la consulta
+ejecutarPreparada($sql, $params, $types='')      // Consulta preparada (SELECT => resultado, DML => bool)
+ejecutarPreparadaFila($sql, $params, $types='')  // Devuelve primera fila o null
 ```
 
 Toda salida de datos de BD hacia HTML/JSON debe pasar por `htmlspecialchars()` en el punto de salida (en `ajax/*.php` y vistas) — `limpiarCadena()` ya no hace HTML-encoding, así que el escape de salida es responsabilidad de cada handler.
@@ -70,6 +72,13 @@ Toda salida de datos de BD hacia HTML/JSON debe pasar por `htmlspecialchars()` e
 ## Autenticación
 
 Todo endpoint en `ajax/*.php` (excepto `usuario.php` case `verificar`, que es el propio login) debe llamar a `requireAuth()` (definida en `config/auth.php`) al inicio del archivo. Corta la ejecución con 401 si no hay `$_SESSION['idusuario']`.
+
+Además:
+
+- **Sesión segura:** usar `iniciarSesionSegura()` en vistas/controladores que inicializan sesión (cookies `HttpOnly`, `SameSite=Lax`, `Secure` en HTTPS).
+- **CSRF:** toda operación de escritura debe validar `verificarCsrf()`. El token se inyecta en frontend desde `vistas/footer.php` y se envía por `X-CSRF-TOKEN`.
+- **Permisos por endpoint:** aplicar `requerirPermiso('<clave>')` o `requerirAlgunPermiso([...])` según módulo antes de ejecutar operaciones.
+- **Salida segura:** no imprimir datos de BD/sesión sin `htmlspecialchars()` en vistas/handlers.
 
 ## Convenciones del Frontend
 
