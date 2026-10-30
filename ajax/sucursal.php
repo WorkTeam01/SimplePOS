@@ -11,31 +11,39 @@ $idempresa = isset($_POST["idempresa"]) ? limpiarCadena($_POST["idempresa"]) : "
 
 switch ($_GET["op"]) {
     case 'guardaryeditar':
+        requerirPermiso('configuracion');
+        verificarCsrf();
         if (empty($idsucursal)) {
             $rspta = $sucursal->insertar($nombre, $idempresa);
             echo $rspta ? "Sucursal registrada correctamente" : "No se pudo registrar la sucursal";
         } else {
-            $rspta = $sucursal->editar($idsucursal, $nombre, $idempresa);
+            $rspta = $sucursal->editar((int) $idsucursal, $nombre, $idempresa);
             echo $rspta ? "Sucursal actualizada correctamente" : "No se pudo actualizar la sucursal";
         }
         break;
-    
+
     case 'desactivar':
-        $rspta = $sucursal->desactivar($idsucursal);
+        requerirPermiso('configuracion');
+        verificarCsrf();
+        $rspta = $sucursal->desactivar((int) $idsucursal);
         echo $rspta ? "Sucursal desactivada correctamente" : "No se pudo desactivar la sucursal";
         break;
-        
+
     case 'activar':
-        $rspta = $sucursal->activar($idsucursal);
+        requerirPermiso('configuracion');
+        verificarCsrf();
+        $rspta = $sucursal->activar((int) $idsucursal);
         echo $rspta ? "Sucursal activada correctamente" : "No se pudo activar la sucursal";
         break;
-    
+
     case 'mostrar':
-        $rspta = $sucursal->mostrar($idsucursal);
+        requerirPermiso('configuracion');
+        $rspta = $sucursal->mostrar((int) $idsucursal);
         echo json_encode($rspta);
         break;
 
     case 'listar':
+        requerirPermiso('configuracion');
         $rspta = $sucursal->listar();
         $data = array();
 

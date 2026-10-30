@@ -1,6 +1,6 @@
 <?php
-session_start();
 require_once "../config/auth.php";
+iniciarSesionSegura();
 require_once "../modelos/Usuario.php";
 
 const PERMISO_ESCRITORIO = 1;
@@ -30,6 +30,8 @@ $imagen = isset($_POST["imagen"]) ? limpiarCadena($_POST["imagen"]) : "";
 switch ($_GET["op"]) {
     case 'guardaryeditar':
         requireAuth();
+        requerirPermiso('acceso');
+        verificarCsrf();
         if (!file_exists($_FILES['imagen']['tmp_name']) || !is_uploaded_file($_FILES['imagen']['tmp_name'])) {
             $imagen = limpiarCadena($_POST["imagenactual"]);
         } else {
@@ -41,16 +43,17 @@ switch ($_GET["op"]) {
             }
         }
 
-        //Hash SHA256 para la contraseña
-        $clavehash = hash("SHA256", $clave);
+        // Hash de contraseña con password_hash (bcrypt/argon2)
+        $clavehash = hashPassword($clave);
         $permisos = $_POST['permiso'] ?? [];
         if (empty($idusuario)) {
             $rspta = $usuario->insertar($nombre, $apellidopaterno, $apellidomaterno, $tipodocumento, $numdocumento, $direccion, $telefono, $correo, $cargo, $clavehash, $imagen, $permisos);
             echo $rspta ? "Usuario registrado correctamente" : "No se pudo registrar el usuario";
         } else {
-            // Si no se cambió la contraseña
+            // Si no se cambió la contraseña, se conserva el hash actual sin re-leerlo del cliente
             if (empty($clave)) {
-                $clavehash = $_POST["claveactual"];
+                $actual = $usuario->mostrar($idusuario);
+                $clavehash = $actual['clave'];
             }
             $rspta = $usuario->editar($idusuario, $nombre, $apellidopaterno, $apellidomaterno, $tipodocumento, $numdocumento, $direccion, $telefono, $correo, $cargo, $clavehash, $imagen, $permisos);
             echo $rspta ? "Usuario actualizado correctamente" : "No se pudo actualizar el usuario";
@@ -59,24 +62,32 @@ switch ($_GET["op"]) {
 
     case 'desactivar':
         requireAuth();
-        $rspta = $usuario->desactivar($idusuario);
+        requerirPermiso('acceso');
+        verificarCsrf();
+        $rspta = $usuario->desactivar((int) $idusuario);
         echo $rspta ? "Usuario desactivado correctamente" : "No se pudo desactivar el usuario";
         break;
 
     case 'activar':
         requireAuth();
-        $rspta = $usuario->activar($idusuario);
+        requerirPermiso('acceso');
+        verificarCsrf();
+        $rspta = $usuario->activar((int) $idusuario);
         echo $rspta ? "Usuario activado correctamente" : "No se pudo activar el usuario";
         break;
 
     case 'mostrar':
         requireAuth();
-        $rspta = $usuario->mostrar($idusuario);
+        requerirPermiso('acceso');
+        $rspta = $usuario->mostrar((int) $idusuario);
+        // Nunca exponer el hash de contraseña al cliente
+        if (is_array($rspta)) unset($rspta['clave']);
         echo json_encode($rspta);
         break;
 
     case 'listar':
         requireAuth();
+        requerirPermiso('acceso');
         $rspta = $usuario->listar();
         $data = array();
 
@@ -105,11 +116,12 @@ switch ($_GET["op"]) {
 
     case 'permisos':
         requireAuth();
+        requerirPermiso('acceso');
         require_once "../modelos/Permiso.php";
         $permiso = new Permiso();
         $rspta = $permiso->listar();
 
-        $id = $_GET['id'];
+        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
         $marcados = $usuario->listarmarcados($id);
         $valores = array();
 
@@ -125,14 +137,20 @@ switch ($_GET["op"]) {
 
     case 'verificar':
         $numdocumentoa = limpiarCadena($_POST['numdocumentoa']);
-        $clavea = $_POST['clavea'];
+        $clavea = $_POST['clavea'] ?? '';
 
-        $clavehash = hash("SHA256", $clavea);
-
-        $rspta = $usuario->verificar($numdocumentoa, $clavehash);
+        $rspta = $usuario->verificar($numdocumentoa);
         $fetch = $rspta->fetch_object();
 
-        if (isset($fetch) && $fetch->estado == 1) {
+        if (isset($fetch) && $fetch->estado == 1 && verifyPassword($clavea, $fetch->clave)) {
+            // Migración: si el hash aún es SHA256 legacy, re-hasheamos con password_hash
+            if (passwordRequiereRehash($fetch->clave)) {
+                $usuario->actualizarClaveHash((int) $fetch->idusuario, hashPassword($clavea));
+            }
+
+            // Mitiga fijación de sesión: nuevo ID antes de crear la sesión autenticada
+            regenerarSesion();
+
             $_SESSION['idusuario'] = $fetch->idusuario;
             $_SESSION['nombre'] = $fetch->nombre;
             $_SESSION['apellidopaterno'] = $fetch->apellidopaterno;
@@ -140,7 +158,10 @@ switch ($_GET["op"]) {
             $_SESSION['imagen'] = $fetch->imagen;
             $_SESSION['numdocumento'] = $fetch->numdocumento;
             $_SESSION['cargo'] = $fetch->cargo;
-            $_SESSION['estado'] = $fetch->estado; // Agregamos el estado a la sesión
+            $_SESSION['estado'] = $fetch->estado;
+
+            // Generamos el token CSRF de esta sesión autenticada
+            csrfToken();
 
             // Obtenemos los permisos
             $marcados = $usuario->listarmarcados($fetch->idusuario);
@@ -160,6 +181,8 @@ switch ($_GET["op"]) {
             $_SESSION['consultav'] = in_array(PERMISO_CONSULTAV, $valores) ? 1 : 0;
             $_SESSION['configuracion'] = in_array(PERMISO_CONFIGURACION, $valores) ? 1 : 0;
         }
+        // Nunca exponer el hash de contraseña en la respuesta del login
+        if (is_object($fetch)) unset($fetch->clave);
         echo json_encode($fetch);
         break;
 

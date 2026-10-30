@@ -18,6 +18,8 @@ $idsucursal = isset($_POST["idsucursal"]) ? limpiarCadena($_POST["idsucursal"]) 
 
 switch ($_GET["op"]) {
     case 'guardaryeditar':
+        requerirPermiso('almacen');
+        verificarCsrf();
         if (!file_exists($_FILES['imagen']['tmp_name']) || !is_uploaded_file($_FILES['imagen']['tmp_name'])) {
             $imagen = limpiarCadena($_POST["imagenactual"]);
         } else {
@@ -38,21 +40,27 @@ switch ($_GET["op"]) {
         break;
 
     case 'desactivar':
-        $rspta = $producto->desactivar($idproducto);
+        requerirPermiso('almacen');
+        verificarCsrf();
+        $rspta = $producto->desactivar((int) $idproducto);
         echo $rspta ? "Producto desactivado correctamente" : "No se pudo desactivar el producto";
         break;
 
     case 'activar':
-        $rspta = $producto->activar($idproducto);
+        requerirPermiso('almacen');
+        verificarCsrf();
+        $rspta = $producto->activar((int) $idproducto);
         echo $rspta ? "Producto activado correctamente" : "No se pudo activar el producto";
         break;
 
     case 'mostrar':
-        $rspta = $producto->mostrar($idproducto);
+        requerirPermiso('almacen');
+        $rspta = $producto->mostrar((int) $idproducto);
         echo json_encode($rspta);
         break;
 
     case 'listar':
+        requerirPermiso('almacen');
         $rspta = $producto->listar();
         $data = array();
 

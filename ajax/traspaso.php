@@ -14,6 +14,8 @@ $observaciones = isset($_POST["observaciones"]) ? limpiarCadena($_POST["observac
 
 switch ($_GET["op"]) {
     case 'guardaryeditar':
+        requerirPermiso('almacen');
+        verificarCsrf();
         if (empty($idtraspaso)) {
             // Verificar si hay productos en el formulario
             if (isset($_POST["idproducto"]) && isset($_POST["cantidad"])) {
@@ -52,10 +54,12 @@ switch ($_GET["op"]) {
         break;
 
     case 'completar':
+        requerirPermiso('almacen');
+        verificarCsrf();
         if (isset($_POST["iddetalletraspaso"])) {
             $iddetalletraspaso = $_POST["iddetalletraspaso"];
 
-            $rspta = $traspaso->completar($idtraspaso, $iddetalletraspaso);
+            $rspta = $traspaso->completar((int) $idtraspaso, $iddetalletraspaso);
             echo $rspta ? "Traspaso completado correctamente" : "No se pudo completar el traspaso";
         } else {
             echo "No se han especificado detalles de traspaso";
@@ -63,17 +67,21 @@ switch ($_GET["op"]) {
         break;
 
     case 'cancelar':
-        $rspta = $traspaso->cancelar($idtraspaso);
+        requerirPermiso('almacen');
+        verificarCsrf();
+        $rspta = $traspaso->cancelar((int) $idtraspaso);
         echo $rspta ? "Traspaso cancelado correctamente" : "No se pudo cancelar el traspaso";
         break;
 
     case 'mostrar':
-        $rspta = $traspaso->mostrar($idtraspaso);
+        requerirPermiso('almacen');
+        $rspta = $traspaso->mostrar((int) $idtraspaso);
         echo json_encode($rspta);
         break;
 
     case 'listarDetalle':
-        $rspta = $traspaso->listarDetalle($idtraspaso);
+        requerirPermiso('almacen');
+        $rspta = $traspaso->listarDetalle((int) $idtraspaso);
 
         $data = [];
         while ($reg = $rspta->fetch_object()) {
@@ -104,6 +112,7 @@ switch ($_GET["op"]) {
         break;
 
     case 'listar':
+        requerirPermiso('almacen');
         $rspta = $traspaso->listar();
 
         $data = [];

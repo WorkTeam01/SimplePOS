@@ -1,6 +1,7 @@
 <?php
 ob_start();
-session_start();
+require_once "../config/auth.php";
+iniciarSesionSegura();
 if (!isset($_SESSION['nombre'])) {
   header("Location: login.html");
 } else {

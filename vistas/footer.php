@@ -18,6 +18,16 @@
 <!-- jQuery 3 - DEBE CARGARSE PRIMERO -->
 <script src="../public/js/jquery.min.js"></script>
 
+<!-- Token CSRF: se adjunta automáticamente a todas las peticiones AJAX -->
+<script>
+  window.CSRF_TOKEN = "<?php echo htmlspecialchars(csrfToken(), ENT_QUOTES); ?>";
+  if (window.jQuery) {
+    $.ajaxSetup({
+      headers: { "X-CSRF-TOKEN": window.CSRF_TOKEN }
+    });
+  }
+</script>
+
 <!-- Bootstrap 3.3.7 -->
 <script src="../public/js/bootstrap.min.js"></script>
 

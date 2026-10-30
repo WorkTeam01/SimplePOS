@@ -19,6 +19,8 @@ $email = isset($_POST["email"]) ? limpiarCadena($_POST["email"]) : "";
 
 switch ($_GET["op"]) {
     case 'guardaryeditar':
+        requerirAlgunPermiso(['ventas', 'compras']);
+        verificarCsrf();
         // Verificar si el documento ya existe
         $documento_existe = $persona->verificarDocumento($numdocumento, $idpersona);
         if ($documento_existe->num_rows > 0) {
@@ -44,21 +46,27 @@ switch ($_GET["op"]) {
         break;
 
     case 'desactivar':
-        $rspta = $persona->desactivar($idpersona);
+        requerirAlgunPermiso(['ventas', 'compras']);
+        verificarCsrf();
+        $rspta = $persona->desactivar((int) $idpersona);
         echo $rspta ? "Persona desactivada correctamente" : "No se pudo desactivar a la persona";
         break;
 
     case 'activar':
-        $rspta = $persona->activar($idpersona);
+        requerirAlgunPermiso(['ventas', 'compras']);
+        verificarCsrf();
+        $rspta = $persona->activar((int) $idpersona);
         echo $rspta ? "Persona activada correctamente" : "No se pudo activar a la persona";
         break;
 
     case 'mostrar':
-        $rspta = $persona->mostrar($idpersona);
+        requerirAlgunPermiso(['ventas', 'compras']);
+        $rspta = $persona->mostrar((int) $idpersona);
         echo json_encode($rspta);
         break;
 
     case 'listarp':
+        requerirAlgunPermiso(['ventas', 'compras']);
         $rspta = $persona->listarp();
         $data = array();
 
@@ -86,6 +94,7 @@ switch ($_GET["op"]) {
         break;
 
     case 'listarc':
+        requerirAlgunPermiso(['ventas', 'compras']);
         $rspta = $persona->listarc();
         $data = array();
 

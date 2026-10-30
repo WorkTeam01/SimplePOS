@@ -62,6 +62,7 @@ class Usuario
     //método para desactivar usuario
     public function desactivar($idusuario)
     {
+        $idusuario = (int) $idusuario;
         $sql = "UPDATE usuarios SET estado = '0' WHERE idusuario = '$idusuario'";
         return ejecutarConsulta($sql);
     }
@@ -69,6 +70,7 @@ class Usuario
     //método para activar usuario
     public function activar($idusuario)
     {
+        $idusuario = (int) $idusuario;
         $sql = "UPDATE usuarios SET estado = '1' WHERE idusuario = '$idusuario'";
         return ejecutarConsulta($sql);
     }
@@ -76,6 +78,7 @@ class Usuario
     //método para mostrar datos de un usuario específico
     public function mostrar($idusuario)
     {
+        $idusuario = (int) $idusuario;
         $sql = "SELECT * FROM usuarios WHERE idusuario = '$idusuario'";
         return ejecutarConsultaSimpleFila($sql);
     }
@@ -90,6 +93,7 @@ class Usuario
     //método para listar los permisos marcados de un usuario
     public function listarmarcados($idusuario)
     {
+        $idusuario = (int) $idusuario;
         $sql = "SELECT p.idpermiso, p.nombre as permiso 
               FROM rol r 
               INNER JOIN permiso p ON r.idpermiso = p.idpermiso 
@@ -98,11 +102,20 @@ class Usuario
     }
 
     //función para verificar el acceso al sistema
-    public function verificar($numdocumento, $clave)
+    //Devuelve la fila (incluyendo clave) para que el controlador verifique con password_verify.
+    public function verificar($numdocumento)
     {
-        $sql = "SELECT idusuario, nombre, apellidopaterno, apellidomaterno, tipodocumento, numdocumento, telefono, correo, cargo, imagen, estado 
+        $sql = "SELECT idusuario, nombre, apellidopaterno, apellidomaterno, tipodocumento, numdocumento, telefono, correo, cargo, imagen, estado, clave
               FROM usuarios 
-              WHERE numdocumento = '$numdocumento' AND clave = '$clave'";
+              WHERE numdocumento = '$numdocumento'";
+        return ejecutarConsulta($sql);
+    }
+
+    //actualiza únicamente el hash de la contraseña (para migración legacy -> password_hash)
+    public function actualizarClaveHash($idusuario, $clavehash)
+    {
+        $idusuario = (int) $idusuario;
+        $sql = "UPDATE usuarios SET clave = '$clavehash' WHERE idusuario = '$idusuario'";
         return ejecutarConsulta($sql);
     }
 }

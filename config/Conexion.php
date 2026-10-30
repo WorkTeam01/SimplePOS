@@ -8,10 +8,11 @@ $conexion = new mysqli(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME);
 
 mysqli_query($conexion, 'SET NAMES "' . DB_ENCODE . '"');
 
-//muestra posible error en la conexion
+// No exponer detalles de la conexión al cliente; se registra solo en el log del servidor.
 if (mysqli_connect_errno()) {
-	printf("Falló en la conexion con la base de datos: %s\n", mysqli_connect_error());
-	exit();
+	error_log('SimplePOS: fallo de conexión a BD: ' . mysqli_connect_error());
+	http_response_code(500);
+	exit('Error interno de base de datos');
 }
 
 if (!function_exists('ejecutarConsulta')) {
@@ -41,5 +42,49 @@ if (!function_exists('ejecutarConsulta')) {
 	{
 		global $conexion;
 		return mysqli_real_escape_string($conexion, trim($str));
+	}
+
+	/**
+	 * Ejecuta una consulta preparada. $params es un array de valores;
+	 * $types es la cadena de tipos mysqli (ej. 'isss'). Si se omite se infiere.
+	 * Devuelve el resultado (SELECT) o true/false (INSERT/UPDATE/DELETE).
+	 */
+	function ejecutarPreparada($sql, $params = [], $types = '')
+	{
+		global $conexion;
+		$stmt = $conexion->prepare($sql);
+		if ($stmt === false) {
+			error_log('SimplePOS: prepare falló: ' . $conexion->error);
+			return false;
+		}
+		if (!empty($params)) {
+			if ($types === '') {
+				$types = '';
+				foreach ($params as $p) {
+					$types .= is_int($p) ? 'i' : (is_float($p) ? 'd' : 's');
+				}
+			}
+			$stmt->bind_param($types, ...$params);
+		}
+		if (!$stmt->execute()) {
+			error_log('SimplePOS: execute falló: ' . $stmt->error);
+			$stmt->close();
+			return false;
+		}
+		$resultado = $stmt->get_result();
+		$stmt->close();
+		return $resultado === false ? true : $resultado;
+	}
+
+	/**
+	 * Igual que ejecutarPreparada pero devolviendo solo la primera fila (array)
+	 * o null si no hay resultados.
+	 */
+	function ejecutarPreparadaFila($sql, $params = [], $types = '')
+	{
+		$resultado = ejecutarPreparada($sql, $params, $types);
+		if ($resultado === false || $resultado === true) return null;
+		$fila = $resultado->fetch_assoc();
+		return $fila === null ? null : $fila;
 	}
 }

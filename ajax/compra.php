@@ -12,6 +12,8 @@ $total_compra = isset($_POST["total_compra"]) ? limpiarCadena($_POST["total_comp
 
 switch ($_GET["op"]) {
     case 'guardaryeditar':
+        requerirPermiso('compras');
+        verificarCsrf();
         if (empty($idcompra)) {
             $rspta = $compra->insertar(
                 $idproveedor,
@@ -26,22 +28,27 @@ switch ($_GET["op"]) {
         break;
 
     case 'anular':
-        $rspta = $compra->anular($idcompra);
+        requerirPermiso('compras');
+        verificarCsrf();
+        $rspta = $compra->anular((int) $idcompra);
         echo $rspta ? "Compra anulada correctamente" : "No se pudo anular la compra";
         break;
 
     case 'activar':
-        $rspta = $compra->activar($idcompra);
+        requerirPermiso('compras');
+        verificarCsrf();
+        $rspta = $compra->activar((int) $idcompra);
         echo $rspta ? "Compra activada correctamente" : "No se pudo activar la compra";
         break;
 
     case 'mostrar':
-        $rspta = $compra->mostrar($idcompra);
+        requerirPermiso('compras');
+        $rspta = $compra->mostrar((int) $idcompra);
         echo json_encode($rspta);
         break;
 
     case 'listarDetalle':
-        $id = $_GET['id'];
+        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
         $rspta = $compra->listarDetalle($id);
         $total = 0;
 
@@ -56,10 +63,10 @@ switch ($_GET["op"]) {
         while ($reg = $rspta->fetch_object()) {
             echo '<tr class="filas">
                     <td></td>
-                    <td>' . $reg->nombre . '</td>
-                    <td>' . $reg->cantidad . '</td>
-                    <td>' . $reg->precio_compra . '</td>
-                    <td>' . $reg->precio_compra * $reg->cantidad . '</td>
+                    <td>' . htmlspecialchars($reg->nombre, ENT_QUOTES) . '</td>
+                    <td>' . htmlspecialchars($reg->cantidad, ENT_QUOTES) . '</td>
+                    <td>' . htmlspecialchars($reg->precio_compra, ENT_QUOTES) . '</td>
+                    <td>' . htmlspecialchars($reg->precio_compra * $reg->cantidad, ENT_QUOTES) . '</td>
                   </tr>';
             $total = $total + ($reg->precio_compra * $reg->cantidad);
         }
@@ -74,6 +81,7 @@ switch ($_GET["op"]) {
         break;
 
     case 'listar':
+        requerirPermiso('compras');
         $rspta = $compra->listar();
         $data = array();
 
@@ -127,7 +135,7 @@ switch ($_GET["op"]) {
                 "1" => htmlspecialchars($reg->nombre),
                 "2" => htmlspecialchars($reg->codigo),
                 "3" => $reg->stock,
-                "4" => "<img src='".(!empty($reg->imagen) ? '../files/productos/'.$reg->imagen : '../public/img/default-50x50.gif')."' height='50px' width='50px'>"
+                "4" => "<img src='".(!empty($reg->imagen) ? '../files/productos/'.htmlspecialchars($reg->imagen, ENT_QUOTES) : '../public/img/default-50x50.gif')."' height='50px' width='50px'>"
             );
         }
 

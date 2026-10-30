@@ -10,31 +10,39 @@ $nombre = isset($_POST["nombre"]) ? limpiarCadena($_POST["nombre"]) : "";
 
 switch ($_GET["op"]) {
     case 'guardaryeditar':
+        requerirPermiso('almacen');
+        verificarCsrf();
         if (empty($idcategoria)) {
             $rspta = $categoria->insertar($nombre);
             echo $rspta ? "Categoría registrada correctamente" : "No se pudo registrar la categoría";
         } else {
-            $rspta = $categoria->editar($idcategoria, $nombre);
+            $rspta = $categoria->editar((int) $idcategoria, $nombre);
             echo $rspta ? "Categoría actualizada correctamente" : "No se pudo actualizar la categoría";
         }
         break;
-    
+
     case 'desactivar':
-        $rspta = $categoria->desactivar($idcategoria);
+        requerirPermiso('almacen');
+        verificarCsrf();
+        $rspta = $categoria->desactivar((int) $idcategoria);
         echo $rspta ? "Categoría desactivada correctamente" : "No se pudo desactivar la categoría";
         break;
-        
+
     case 'activar':
-        $rspta = $categoria->activar($idcategoria);
+        requerirPermiso('almacen');
+        verificarCsrf();
+        $rspta = $categoria->activar((int) $idcategoria);
         echo $rspta ? "Categoría activada correctamente" : "No se pudo activar la categoría";
         break;
-    
+
     case 'mostrar':
-        $rspta = $categoria->mostrar($idcategoria);
+        requerirPermiso('almacen');
+        $rspta = $categoria->mostrar((int) $idcategoria);
         echo json_encode($rspta);
         break;
 
     case 'listar':
+        requerirPermiso('almacen');
         $rspta = $categoria->listar();
         $data = array();
 

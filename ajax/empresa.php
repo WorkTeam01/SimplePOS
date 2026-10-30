@@ -15,13 +15,15 @@ $imagen = isset($_POST["imagen"]) ? limpiarCadena($_POST["imagen"]) : "";
 
 switch ($_GET["op"]) {
     case 'guardaryeditar':
+        requerirPermiso('configuracion');
+        verificarCsrf();
         // Validar NIT único
         $nitExiste = $empresa->verificarNit($nit);
         if(empty($idempresa) && $nitExiste->num_rows > 0){
             echo "El NIT ya está registrado en el sistema";
             break;
         }
-        
+
         if (empty($idempresa)) {
             $rspta = $empresa->insertar($nombre, $nit, $direccion, $telefono, $email, $imagen);
             echo $rspta ? "Empresa registrada correctamente" : "No se pudo registrar la empresa";
@@ -32,21 +34,27 @@ switch ($_GET["op"]) {
         break;
     
     case 'desactivar':
-        $rspta = $empresa->desactivar($idempresa);
+        requerirPermiso('configuracion');
+        verificarCsrf();
+        $rspta = $empresa->desactivar((int) $idempresa);
         echo $rspta ? "Empresa desactivada correctamente" : "No se pudo desactivar la empresa";
         break;
-        
+
     case 'activar':
-        $rspta = $empresa->activar($idempresa);
+        requerirPermiso('configuracion');
+        verificarCsrf();
+        $rspta = $empresa->activar((int) $idempresa);
         echo $rspta ? "Empresa activada correctamente" : "No se pudo activar la empresa";
         break;
-    
+
     case 'mostrar':
-        $rspta = $empresa->mostrar($idempresa);
+        requerirPermiso('configuracion');
+        $rspta = $empresa->mostrar((int) $idempresa);
         echo json_encode($rspta);
         break;
 
     case 'listar':
+        requerirPermiso('configuracion');
         $rspta = $empresa->listar();
         $data = array();
 

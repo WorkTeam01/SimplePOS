@@ -1,5 +1,6 @@
 <?php
 require_once "../config/Conexion.php";
+require_once "../config/auth.php";
 
 class Perfil
 {
@@ -9,6 +10,7 @@ class Perfil
     // Método para obtener el perfil del usuario
     public function obtenerPerfil($idusuario)
     {
+        $idusuario = (int) $idusuario;
         $sql = "SELECT u.idusuario, u.nombre, u.apellidopaterno, u.apellidomaterno, 
                 u.tipodocumento, u.numdocumento, u.direccion, u.telefono, u.correo, 
                 u.cargo, u.imagen, u.estado 
@@ -30,6 +32,7 @@ class Perfil
         $correo,
         $imagen
     ) {
+        $idusuario = (int) $idusuario;
         $sql = "UPDATE usuarios SET 
                 nombre = '$nombre',
                 apellidopaterno = '$apellidopaterno',
@@ -49,13 +52,14 @@ class Perfil
     public function cambiarClave($idusuario, $claveActual, $claveNueva)
     {
         if (empty($claveActual) || empty($claveNueva)) return false;
+        $idusuario = (int) $idusuario;
 
         // Primero verificamos que la clave actual sea correcta
         $sql = "SELECT clave FROM usuarios WHERE idusuario = '$idusuario'";
         $claveDB = ejecutarConsultaSimpleFila($sql);
 
-        if ($claveDB['clave'] == hash("SHA256", $claveActual)) {
-            $claveNuevaHash = hash("SHA256", $claveNueva);
+        if ($claveDB && verifyPassword($claveActual, $claveDB['clave'])) {
+            $claveNuevaHash = hashPassword($claveNueva);
             $sql = "UPDATE usuarios SET clave = '$claveNuevaHash' WHERE idusuario = '$idusuario'";
             return ejecutarConsulta($sql);
         } else {

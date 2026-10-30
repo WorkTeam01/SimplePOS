@@ -13,6 +13,8 @@ $totalventa = isset($_POST["totalventa"]) ? limpiarCadena($_POST["totalventa"]) 
 
 switch ($_GET["op"]) {
     case 'guardaryeditar':
+        requerirPermiso('ventas');
+        verificarCsrf();
         if (empty($idventa)) {
             $pagos_detalle = array();
 
@@ -78,12 +80,16 @@ switch ($_GET["op"]) {
         break;
 
     case 'anular':
-        echo $venta->anular($idventa) ? "Venta anulada correctamente" : "No se pudo anular la venta";
+        requerirPermiso('ventas');
+        verificarCsrf();
+        echo $venta->anular((int) $idventa) ? "Venta anulada correctamente" : "No se pudo anular la venta";
         break;
 
     case 'mostrar':
-        $rspta = $venta->mostrar($idventa);
-        $detalle_pagos = $venta->listarPagosVenta($idventa);
+        requerirPermiso('ventas');
+        $id = (int) $idventa;
+        $rspta = $venta->mostrar($id);
+        $detalle_pagos = $venta->listarPagosVenta($id);
         $pagos_data = array();
         while ($pago = $detalle_pagos->fetch_object()) {
             $pagos_data[] = $pago;
@@ -93,7 +99,8 @@ switch ($_GET["op"]) {
         break;
 
     case 'listarDetalle':
-        $rspta = $venta->listarDetalle($_GET['id']);
+        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+        $rspta = $venta->listarDetalle($id);
         $total = 0;
 
         echo '<thead style="background-color:#A9D0F5">
@@ -108,11 +115,11 @@ switch ($_GET["op"]) {
         while ($reg = $rspta->fetch_object()) {
             echo '<tr class="filas">
                     <td></td>
-                    <td>' . $reg->nombre . '</td>
-                    <td>' . $reg->cantidad . '</td>
-                    <td>' . $reg->precioventa . '</td>
-                    <td>' . $reg->descuento . '</td>
-                    <td>' . $reg->subtotal . '</td>
+                    <td>' . htmlspecialchars($reg->nombre, ENT_QUOTES) . '</td>
+                    <td>' . htmlspecialchars($reg->cantidad, ENT_QUOTES) . '</td>
+                    <td>' . htmlspecialchars($reg->precioventa, ENT_QUOTES) . '</td>
+                    <td>' . htmlspecialchars($reg->descuento, ENT_QUOTES) . '</td>
+                    <td>' . htmlspecialchars($reg->subtotal, ENT_QUOTES) . '</td>
                   </tr>';
             $total += ($reg->precioventa * $reg->cantidad - $reg->descuento);
         }
@@ -128,6 +135,7 @@ switch ($_GET["op"]) {
         break;
 
     case 'listar':
+        requerirPermiso('ventas');
         $rspta = $venta->listar();
         $data = array();
 

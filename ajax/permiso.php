@@ -9,6 +9,7 @@ $categoria=new Permiso();
 switch ($_GET["op"]) {
 	
     case 'listar':
+		requerirPermiso('acceso');
 		$rspta=$categoria->listar();
 		$data=Array();
 

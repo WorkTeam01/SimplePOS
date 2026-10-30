@@ -17,8 +17,8 @@ require_once "../modelos/Empresa.php";
 $venta = new Venta();
 $empresa = new Empresa();
 
-// Obtener ID de venta
-$idventa = isset($_GET["id"]) ? limpiarCadena($_GET["id"]) : exit("ID de venta no especificado");
+// Obtener ID de venta (siempre entero para evitar inyección SQL)
+$idventa = isset($_GET["id"]) ? (int) $_GET["id"] : exit("ID de venta no especificado");
 
 // 1. Obtener datos de la venta
 $datosVenta = $venta->ventacabecera($idventa);

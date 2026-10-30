@@ -1,9 +1,14 @@
 <?php
-if (strlen(session_id()) < 1)
-  session_start();
+require_once "../config/auth.php";
+iniciarSesionSegura();
 
 // Obtener el nombre del archivo actual
 $current_file = basename($_SERVER['PHP_SELF']);
+$usuarioImagen = !empty($_SESSION['imagen']) ? '../files/usuarios/' . rawurlencode((string) $_SESSION['imagen']) : '../public/img/avatar.png';
+$usuarioNombre = htmlspecialchars((string) ($_SESSION['nombre'] ?? ''), ENT_QUOTES, 'UTF-8');
+$usuarioApellidoPaterno = htmlspecialchars((string) ($_SESSION['apellidopaterno'] ?? ''), ENT_QUOTES, 'UTF-8');
+$usuarioApellidoMaterno = htmlspecialchars((string) ($_SESSION['apellidomaterno'] ?? ''), ENT_QUOTES, 'UTF-8');
+$usuarioCargo = htmlspecialchars((string) ($_SESSION['cargo'] ?? ''), ENT_QUOTES, 'UTF-8');
 ?>
 <!DOCTYPE html>
 <html lang="es-bo">
@@ -69,17 +74,17 @@ $current_file = basename($_SERVER['PHP_SELF']);
           <ul class="nav navbar-nav">
             <li class="dropdown user user-menu">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                <img src="<?php echo !empty($_SESSION['imagen']) ? '../files/usuarios/'.$_SESSION['imagen'] : '../public/img/avatar.png'; ?>" class="user-image" alt="User Image">
-                <span class="hidden-xs"><?php echo $_SESSION['nombre']; ?></span>
+                <img src="<?php echo $usuarioImagen; ?>" class="user-image" alt="User Image">
+                <span class="hidden-xs"><?php echo $usuarioNombre; ?></span>
               </a>
               <ul class="dropdown-menu">
                 <!-- User image -->
                 <li class="user-header">
-                  <img src="<?php echo !empty($_SESSION['imagen']) ? '../files/usuarios/'.$_SESSION['imagen'] : '../public/img/avatar.png'; ?>" class="img-circle" alt="User Image">
+                  <img src="<?php echo $usuarioImagen; ?>" class="img-circle" alt="User Image">
 
                   <p>
-                    <?php echo $_SESSION['nombre'] . ' ' . $_SESSION['apellidopaterno'] . ' ' . $_SESSION['apellidomaterno']; ?>
-                    <small><?php echo $_SESSION['cargo']; ?></small>
+                    <?php echo trim($usuarioNombre . ' ' . $usuarioApellidoPaterno . ' ' . $usuarioApellidoMaterno); ?>
+                    <small><?php echo $usuarioCargo; ?></small>
                   </p>
                 </li>
                 <!-- Menu Footer-->

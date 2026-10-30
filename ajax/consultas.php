@@ -10,6 +10,7 @@ $op = isset($_GET["op"]) ? $_GET["op"] : "";
 
 switch ($op) {
   case 'comprasfecha':
+    requerirPermiso('consultac');
     $fecha_inicio = isset($_GET["fecha_inicio"]) ? limpiarCadena($_GET["fecha_inicio"]) : "";
     $fecha_fin = isset($_GET["fecha_fin"]) ? limpiarCadena($_GET["fecha_fin"]) : "";
 
@@ -38,6 +39,7 @@ switch ($op) {
     break;
 
   case 'ventasfechacliente':
+    requerirPermiso('consultav');
     $fecha_inicio = isset($_GET["fecha_inicio"]) ? limpiarCadena($_GET["fecha_inicio"]) : "";
     $fecha_fin = isset($_GET["fecha_fin"]) ? limpiarCadena($_GET["fecha_fin"]) : "";
     $idcliente = isset($_GET["idcliente"]) ? limpiarCadena($_GET["idcliente"]) : "";

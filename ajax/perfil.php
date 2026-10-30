@@ -1,12 +1,10 @@
 <?php
-session_start();
+require_once "../config/auth.php";
+iniciarSesionSegura();
 require_once "../modelos/Perfil.php";
 
 // Verificar si el usuario está logueado
-if (!isset($_SESSION['idusuario'])) {
-    echo json_encode(['error' => 'No hay sesión activa']);
-    exit();
-}
+requiereAutenticacion();
 
 $perfil = new Perfil();
 $idusuario = $_SESSION['idusuario'];
@@ -30,6 +28,7 @@ switch ($_GET["op"]) {
         break;
 
     case 'actualizar':
+        verificarCsrf();
         if (!file_exists($_FILES['imagen']['tmp_name']) || !is_uploaded_file($_FILES['imagen']['tmp_name'])) {
             $imagen = limpiarCadena($_POST["imagenactual"]);
         } else {
@@ -67,6 +66,7 @@ switch ($_GET["op"]) {
         break;
 
     case 'cambiarClave':
+        verificarCsrf();
         $rspta = $perfil->cambiarClave($idusuario, $claveActual, $claveNueva);
         echo $rspta ? "Contraseña actualizada correctamente" : "La contraseña actual es incorrecta";
         break;
